@@ -2,6 +2,7 @@
 const router = require('express').Router();
 const User = require("../model/user");
 const {check,validationResult} = require('express-validator');
+const jwt = require('jsonwebtoken');
 
 router.get("/",(req,res)=>{
   res.send("User default route working");
@@ -37,9 +38,13 @@ router.post("/create",
    try
    {
     const savedUser = await user1.save();
+    const token = jwt.sign({user_id:savedUser._id},"mahbir123",{expiresIn:'5d'})
     res.json({
-      savedUser
+      savedUser,
+      token,
     });
+    
+    
      
    }
    catch(error)
@@ -53,6 +58,29 @@ router.post("/create",
   registerUser();
   
   
+})
+
+router.post("/login",(req,res)=>{
+  const loginUser = async() => {
+    
+    const{email,password} = req.body;
+    
+    const savedUser = await User.findOne({email});
+    if(savedUser.password === password)
+    {
+      const token = jwt.sign({user_id:savedUser._id},"mahbir123",{expiresIn:'5d'})
+      res.json({savedUser,token,name:req.username
+      })
+      
+    }
+    else
+    {
+      res.send("Invalid email or password")
+      
+    }
+
+  }
+  loginUser();
 })
 
 
